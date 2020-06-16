@@ -5,7 +5,7 @@ services:
     build:
       context: .
       args:
-        - DOCKER_UID=${DOCKER_UID-1000}
+        - DOCKER_UID=docker-airflow-1000
       dockerfile: Dockerfile
     restart: always
     environment:
