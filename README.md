@@ -1,5 +1,7 @@
 # Apache Airflow docker-compose
 
+![](https://img.shields.io/docker/cloud/build/wstolk/apache-airflow)
+
 **Currently using Apache Airflow 1.10.10**
 
 Docker Compose files for setting up an Apache Airflow environment (LocalExecutor). 
