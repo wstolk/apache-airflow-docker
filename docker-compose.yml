@@ -1,0 +1,44 @@
+version: '2.1'
+services:
+  postgres:
+    image: postgres:9.6
+    container_name: af_postgres
+    environment:
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=${POSTGRES_PW-airflow}
+      - POSTGRES_DB=airflow
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - ./volumes/postgres_data:/var/lib/postgresql/data/pgdata:Z
+    ports:
+      - 127.0.0.1:5432:5432
+
+  webserver:
+    extends:
+      file: docker-compose.airflow.yml
+      service: airflow
+    container_name: af_webserver
+    command: webserver
+    restart: always
+    depends_on:
+      - postgres
+    ports:
+      - '8080:8080'
+    networks:
+      - proxy
+      - default
+    environment:
+      # Web Server Config
+      - AIRFLOW__WEBSERVER__DAG_DEFAULT_VIEW=graph
+      - AIRFLOW__WEBSERVER__RBAC=false
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+
+      # Web Server Performance tweaks
+      # 2 * NUM_CPU_CORES + 1
+      - AIRFLOW__WEBSERVER__WORKERS=${AF_WORKERS-2}
+      # Restart workers every 30min instead of 30seconds
+      - AIRFLOW__WEBSERVER__WORKER_REFRESH_INTERVAL=1800
+
+networks:
+  proxy:
+    external: false
