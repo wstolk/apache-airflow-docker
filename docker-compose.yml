@@ -2,7 +2,7 @@ version: '2.1'
 services:
   postgres:
     image: postgres:9.6
-    container_name: af_postgres
+    container_name: airflow_postgres
     environment:
       - POSTGRES_USER=airflow
       - POSTGRES_PASSWORD=${POSTGRES_PW-airflow}
@@ -14,30 +14,39 @@ services:
       - 127.0.0.1:5432:5432
 
   webserver:
-    extends:
-      file: docker-compose.airflow.yml
-      service: airflow
-    container_name: af_webserver
-    command: webserver
+    image: wstolk/apache-airflow:latest
     restart: always
     depends_on:
       - postgres
+    container_name: airflow_webserver
+    logging:
+      options:
+        max-size: 10m
+        max-file: "3"
+    environment:
+      - AIRFLOW__WEBSERVER__RBAC=false
+      - AIRFLOW__CORE__EXECUTOR=SequentialExecutor
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgres://airflow:${POSTGRES_PW-airflow}@postgres:5432/airflow
+      - AIRFLOW__CORE__FERNET_KEY=${AF_FERNET_KEY-GUYoGcG5xdn5K3ysGG3LQzOt3cc0UBOEibEPxugDwas=}
+      - AIRFLOW__CORE__AIRFLOW_HOME=/opt/airflow/
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__CORE__LOAD_DEFAULT_CONNECTIONS=False
+    volumes:
+      - ../airflow/dags:/opt/airflow/dags:z
+      - ../airflow/plugins:/opt/airflow/plugins:z
+      - ./volumes/airflow_data_dump:/opt/airflow/data_dump:z
+      - ./volumes/airflow_logs:/opt/airflow/logs:z
     ports:
-      - '8080:8080'
+      - "8080:8080"
     networks:
       - proxy
       - default
-    environment:
-      # Web Server Config
-      - AIRFLOW__WEBSERVER__DAG_DEFAULT_VIEW=graph
-      - AIRFLOW__WEBSERVER__RBAC=false
-      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
-
-      # Web Server Performance tweaks
-      # 2 * NUM_CPU_CORES + 1
-      - AIRFLOW__WEBSERVER__WORKERS=${AF_WORKERS-2}
-      # Restart workers every 30min instead of 30seconds
-      - AIRFLOW__WEBSERVER__WORKER_REFRESH_INTERVAL=1800
+    command: webserver
+    healthcheck:
+      test: ["CMD-SHELL", "[ -f /opt/airflow/airflow-webserver.pid ]"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
 
 networks:
   proxy:
