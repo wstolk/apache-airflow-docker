@@ -1,5 +1,5 @@
 # Load latest official Airflow image as base
-FROM apache/airflow:1.10.10
+FROM apache/airflow:1.10.14
 LABEL maintainer="wstolk"
 
 # Airflow variables

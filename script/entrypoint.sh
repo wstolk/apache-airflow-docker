@@ -11,7 +11,7 @@ TRY_LOOP="20"
 : "${AIRFLOW_HOME:="/opt/airflow"}"
 : "${AIRFLOW__CORE__FERNET_KEY:=${AIRFLOW__CORE__FERNET_KEY:=$(python -c "from cryptography.fernet import Fernet; FERNET_KEY = Fernet.generate_key().decode(); print(FERNET_KEY)")}}"
 : "${AIRFLOW__CORE__EXECUTOR:=${AIRFLOW__CORE__EXECUTOR:-SequentialExecutor}}"
-: "${$AIRFLOW__CORE__LOAD_EXAMPLES:=${$AIRFLOW__CORE__LOAD_EXAMPLES:-False}}"
+: "${AIRFLOW__CORE__LOAD_EXAMPLES:=${AIRFLOW__CORE__LOAD_EXAMPLES:-False}}"
 
 export \
   AIRFLOW_HOME \
